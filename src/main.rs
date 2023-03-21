@@ -15,6 +15,9 @@ fn main() {
 pub struct ScanRequest{
   //With -p flag, just add the specified ports. Without -p flag, add all 65,535 ports.
   ports: Vec<i32>,
+  //for now, one address at a time. manually parsing ip addresses and subnets seems like it will be a pain,
+  //and is not the point of this excercise anyway.
+  // Nevertheless, the option remains to add this functionality (In parse_args.rs) later.
   target_addresses: Vec<String>,
   scan_type: ScanType,
 }
@@ -28,4 +31,3 @@ impl ScanRequest{
 }
 #[derive(Debug)]
 enum ScanType{Normal, Syn,}
-//This is just to test magit.

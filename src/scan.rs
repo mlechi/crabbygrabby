@@ -28,6 +28,7 @@ pub fn connect_scan(req:ScanRequest){
 
 //THIS WAS mostly WRITTEN BY CHATGPT, NOT ME. I AM NOT TAKING CREDIT FOR THIS. THE ABOVE WAS WRITTEN BY ME, BUT THE BELOW WAS WRITTEN BY CHATGPT.
 //I put it in the loop to scan multiple ports, and I made it work with the scanrequest struct.
+//It doesn't really work as intended, so I'll work on something that does in the future.
 pub fn syn_scan(req:ScanRequest){
     println!("SYN scan called!!!!!");
     let address = &req.target_addresses[0];
@@ -38,7 +39,7 @@ pub fn syn_scan(req:ScanRequest){
             Ok(x) => {
                 println!("It worked! (port {})",p);
                 let mut stream = x;
-                //stream.set_write_timeout(Some(Duration::from_secs(1))).unwrap(); // Commenting this out doesn't prevent red from failing.
+                //stream.set_write_timeout(Some(Duration::from_secs(1))).unwrap(); // Commenting this out doesn't prevent read from failing.
                 stream.set_nonblocking(true).expect("set_non_blocking"); //This makes the program panic at stream.read.
                 stream.write(&[0x02]).unwrap();
                 let mut buf = [0; 1024];

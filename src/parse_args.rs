@@ -32,8 +32,9 @@ pub fn parse()-> ScanRequest{
     //Use ports_parse
     let prt:Vec<i32> = ports_parse(&args[arg_index_port]);
     //Use address_parse to get list of addresses to scan.
+    //As of now, address_parse does nothing.
     let mut addrs:Vec<String> = address_parse(&args[arg_index_address]);
-    //Below this is a placeholder.
+    //Return the ScanRequest.
     ScanRequest { ports: (prt), target_addresses: (addrs), scan_type: (s_t), }
 }
 
@@ -42,13 +43,14 @@ fn address_parse(input: &String)->Vec<String>{
     vec![input.to_string()]
 }
 
+//There absolutely must be a more efficient way to do this.
 fn ports_parse(list:&String)->Vec<i32>{
     //Called on arg preceded by -p.
     let mut ports:Vec<i32> = Vec::new();
     let mut loop_buffer:Vec<char> = Vec::new();
     let mut port_buffer:Vec<String> = Vec::new();
     //This will result in port_buffer being a Vec<String>, with each String being either a port or a range of ports.
-    //Check for improper input, convert to ints and push to ports, and process ranges and push ranges to ports later.
+    //Check for improper input, convert to ints and push to ports vector, and process ranges and push ranges to ports later.
     for i in list.chars() {
         //if i is a number, push to end of loop_buffer.
         if i.is_numeric() {
@@ -63,10 +65,7 @@ fn ports_parse(list:&String)->Vec<i32>{
         } else if !i.is_numeric(){
           println!("Unparseable input detected. Probably gonna panic soon.");
         }
-        //println!("{:?}",loop_buffer);
     }
-    //println!("port_buffer: {:?}", port_buffer);
-    //println!("loop_buffer: {:?}", loop_buffer);
     port_buffer.push(loop_buffer.iter().collect());
     //Now, loop through port_buffer, parse numeric strings to i32s, and parse ranges.
     for s in port_buffer{
