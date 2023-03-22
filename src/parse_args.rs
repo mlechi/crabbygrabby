@@ -14,30 +14,38 @@ pub fn parse()-> ScanRequest{
     let mut s_t: ScanType = ScanType::Normal;
     //Find the indexes.
     println!("Arguments given: {:?}",args);
-    for i in 0..args.len(){
-        match args[i].as_str(){
-            //port
-            "-p" => arg_index_port = i+1,
-            //ipv4 target
-            "-t" => arg_index_address = i+1,
-            //Scan type
-            "-st" => {match args[i+1].as_str(){
-                "c" => s_t = ScanType::Normal,
-                "s" => s_t = ScanType::Syn,
-                  _ => s_t = ScanType::Normal,
-            }},
-              _  => (),
+    if args.len() > 1 {
+        for i in 0..args.len(){
+            match args[i].as_str(){
+                //port
+                "-p" => arg_index_port = i+1,
+                //ipv4 target
+                "-t" => arg_index_address = i+1,
+                //Scan type
+                "-st" => {match args[i+1].as_str(){
+                    "c" => s_t = ScanType::Normal,
+                    "s" => s_t = ScanType::Syn,
+                    _ => s_t = ScanType::Normal,
+                }},
+                _  => (),
+            }
         }
+        //Use ports_parse
+        let prt:Vec<i32> = ports_parse(&args[arg_index_port]);
+        //Use address_parse to get list of addresses to scan.
+        //As of now, address_parse does nothing.
+        let mut addrs:Vec<String> = address_parse(&args[arg_index_address]);
+        //Return the ScanRequest.
+        ScanRequest { ports: (prt), target_addresses: (addrs), scan_type: (s_t), }
+    } else {
+        //Return the ScanRequest.
+        let prt:Vec<i32> = vec![8080];
+        let addrs:Vec<String> = vec!["127.0.0.1".to_string()];
+        ScanRequest { ports: (prt), target_addresses: (addrs), scan_type: (s_t), }
     }
-    //Use ports_parse
-    let prt:Vec<i32> = ports_parse(&args[arg_index_port]);
-    //Use address_parse to get list of addresses to scan.
-    //As of now, address_parse does nothing.
-    let mut addrs:Vec<String> = address_parse(&args[arg_index_address]);
-    //Return the ScanRequest.
-    ScanRequest { ports: (prt), target_addresses: (addrs), scan_type: (s_t), }
 }
 
+//IPv4 addresses only
 fn address_parse(input: &String)->Vec<String>{
     //Placeholder that works on only one string, and does no input validation.
     vec![input.to_string()]
