@@ -48,6 +48,12 @@ pub fn parse()-> ScanRequest{
 //IPv4 addresses only
 fn address_parse(input: &String)->Vec<String>{
     //Placeholder that works on only one string, and does no input validation.
+    let mut num_periods:u16 = 0;
+    for i in input.chars() {
+        if i == '.' {num_periods+=1;}
+        else if !i.is_numeric(){ panic!("Only numbers and periods accepted in IP address right now."); }
+    }
+    if num_periods != 3 {panic!("Invalid IP address.");}
     vec![input.to_string()]
 }
 
