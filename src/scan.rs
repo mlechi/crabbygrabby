@@ -14,13 +14,17 @@ pub fn connect_scan(req:ScanRequest){
         Err(x) => println!("It didn't work!"),
     }*/
     //Second implementation should work with one address and many ports.
-    let address = &req.target_addresses[0];
-    for p in req.ports {
-        let target:String = format!("{}:{}", address, p.to_string());
-        match TcpStream::connect(target){
-        Ok(x) => println!("It worked! (port {})",p),
-        Err(x) => println!("It didn't work! (port {})",p),
-    }
+    //let address = &req.target_addresses[0];
+    for a in req.target_addresses {
+
+    
+        for p in &req.ports {
+            let target:String = format!("{}:{}", a, p.to_string());
+            match TcpStream::connect(target){
+                Ok(x) => println!("It worked! ({}:{})",a,p),
+                Err(x) => println!("It didn't work! ({}:{})",a,p),
+            }
+        }
     }
     //Third implementation should work with many addresses and many ports.
     //This won't work until after multi address spec is added in parse_args.rs

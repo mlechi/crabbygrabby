@@ -48,13 +48,45 @@ pub fn parse()-> ScanRequest{
 //IPv4 addresses only
 fn address_parse(input: &String)->Vec<String>{
     //Placeholder that works on only one string, and does no input validation.
-    let mut num_periods:u16 = 0;
+    /*let mut num_periods:u16 = 0;
     for i in input.chars() {
         if i == '.' {num_periods+=1;}
         else if !i.is_numeric(){ panic!("Only numbers and periods accepted in IP address right now."); }
     }
     if num_periods != 3 {panic!("Invalid IP address.");}
-    vec![input.to_string()]
+    vec![input.to_string()]*/
+    let mut output:Vec<String> = Vec::new();
+    let mut octet_number: u16 = 0;
+    let mut octet_buffer:String = String::new();
+    let mut add_buffer:String = String::new();
+    for i in input.chars() {
+        if i.is_numeric() {octet_buffer.push(i);}
+        else if i == '.' {
+            octet_buffer.push(i);
+            add_buffer.push_str(octet_buffer.as_str());
+            octet_buffer.clear();
+            octet_number += 1;
+            //num_periods += 1;
+        }
+        else if octet_number == 3 && (i == '-' || i == '/') {octet_buffer.push(i);}
+        else if octet_number == 3 && i == ',' {
+            add_buffer.push_str(octet_buffer.as_str());
+            output.push(add_buffer.clone());
+            add_buffer.clear();
+            octet_buffer.clear();
+            octet_number = 0;
+        }
+        else {panic!("Invalid IP address. (Invalid input)");}
+    }
+    add_buffer.push_str(&octet_buffer.as_str());
+    println!("{}", octet_number);
+    //println!("Before range parsing: {:?}",output);
+    //let add_split = add_buffer.split("-");
+    //let start = add_split.next().unwrap().parse::<u16>().unwrap();
+    //let end = add_split.next().unwrap().parse::<u16>().unwrap();
+    output.push(add_buffer.clone());
+    println!("Before range parsing: {:?}",output);
+    output
 }
 
 //There absolutely must be a more efficient way to do this.
