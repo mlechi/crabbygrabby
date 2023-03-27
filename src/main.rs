@@ -7,7 +7,6 @@ mod scan;
 fn main() {
   //returns a ScanRequest.
   let scan_req = parse_args::parse();
-  //println!("{:?}", scan_req);
   scan_req.perform_scan();
 }
 #[derive(Debug)]
@@ -26,8 +25,9 @@ impl ScanRequest{
     match self.scan_type{
       ScanType::Normal => scan::connect_scan(self),
       ScanType::Syn => scan::syn_scan(self),
+      ScanType::NoScan => (),
     }
   }
 }
 #[derive(Debug)]
-enum ScanType{Normal, Syn,}
+enum ScanType{Normal, Syn, NoScan,}
