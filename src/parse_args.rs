@@ -38,41 +38,12 @@ pub fn parse()-> ScanRequest{
         //Return the ScanRequest.
         ScanRequest { ports: (prt), target_addresses: (addrs), scan_type: (s_t), }
     } else {
-        //Return the ScanRequest.
-        let prt:Vec<i32> = vec![0];
-        let addrs:Vec<String> = vec!["0.0.0.0".to_string()];
-        println!("A simple port scanner for the purpose of study and practice.");
-        println!("");
-        println!("");
-        println!("Input works as follows:");
-        println!("");
-        println!("Ip address is entered after the -t flag.");
-        println!("    Only IPv4 addreses work right now.");
-        println!("    You can enter one address, or multiple seperated by commas with no spaces.");
-        println!("    Ranges, subnets, and multiple addresses seperated by commas with spaces will come later.");
-        println!("");
-        println!("Ports are entered after the -p flag.");
-        println!("    Ports can be entered singularly, with commas, or as ranges. No spaces.");
-        println!("");
-        println!("Scan type is entered after -st flag.");
-        println!("    This can and should be ommitted, because it does nothing as of now.");
-        println!("    Right now, only a normal TCP connect scan is fully functional.");
-        println!("    To do a TCP connect scan, type \"c\" after -st flag.");
-        s_t = ScanType::NoScan;
-        ScanRequest { ports: (prt), target_addresses: (addrs), scan_type: (s_t), }
+        help_message()
     }
 }
 
 //IPv4 addresses only
 fn address_parse(input: &String)->Vec<String>{
-    //Placeholder that works on only one string, and does no input validation.
-    /*let mut num_periods:u16 = 0;
-    for i in input.chars() {
-        if i == '.' {num_periods+=1;}
-        else if !i.is_numeric(){ panic!("Only numbers and periods accepted in IP address right now."); }
-    }
-    if num_periods != 3 {panic!("Invalid IP address.");}
-    vec![input.to_string()]*/
     let mut output:Vec<String> = Vec::new();
     let mut octet_number: u16 = 0;
     let mut octet_buffer:String = String::new();
@@ -162,4 +133,26 @@ fn ports_parse(list:&String)->Vec<i32>{
         }
     }
     ports
+}
+
+fn help_message() -> ScanRequest {
+    println!("");
+    println!("A simple port scanner for the purpose of study and practice.");
+    println!("");
+    println!("");
+    println!("Input works as follows:");
+    println!("");
+    println!("Ip address is entered after the -t flag.");
+    println!("    Only IPv4 addreses work right now.");
+    println!("    You can enter one address, or multiple seperated by commas with no spaces.");
+    println!("    Ranges, subnets, and multiple addresses seperated by commas with spaces will come later.");
+    println!("");
+    println!("Ports are entered after the -p flag.");
+    println!("    Ports can be entered singularly, with commas, or as ranges. No spaces.");
+    println!("");
+    println!("Scan type is entered after -st flag.");
+    println!("    This can and should be ommitted, because it does nothing as of now.");
+    println!("    Right now, only a normal TCP connect scan is fully functional.");
+    println!("    To do a TCP connect scan, type \"c\" after -st flag.");
+    ScanRequest { ports: (vec![0]), target_addresses: (vec!["".to_string()]), scan_type: (ScanType::NoScan) }
 }
