@@ -51,16 +51,31 @@ fn address_parse(input: &String)->Vec<String>{
     for i in input.chars() {
         if i.is_numeric() {octet_buffer.push(i);}
         else if i == '.' {
-            octet_buffer.push(i);
-            add_buffer.push_str(octet_buffer.as_str());
+            match &octet_buffer.parse::<u8>() {
+                Ok(x)  => {
+                    if x >= &0 && x <= &255 {
+                        octet_buffer.push(i);
+                        add_buffer.push_str(octet_buffer.as_str());
+                    } else {println!("An octet in an ip address is outside the acceptable range (between 0 and 255)");}
+                },
+                Err(_)  => panic!("An octet in an ip address failed to parse to a number."),
+            }
             octet_buffer.clear();
             octet_number += 1;
             //num_periods += 1;
         }
-        else if octet_number == 3 && (i == '-' || i == '/') {octet_buffer.push(i);}
+        //When ranges and subnets are supported, this will be uncommented.
+        //else if octet_number == 3 && (i == '-' || i == '/') {octet_buffer.push(i);}
         else if octet_number == 3 && i == ',' {
-            add_buffer.push_str(octet_buffer.as_str());
-            output.push(add_buffer.clone());
+            match &octet_buffer.parse::<u8>() {
+                Ok(x)  => {
+                    if x >= &0 && x <= &255 {
+                        add_buffer.push_str(octet_buffer.as_str());
+                        output.push(add_buffer.clone());
+                    } else {println!("An octet in an ip address is outside the acceptable range (between 0 and 255)");}
+                },
+                Err(_)  => panic!("An octet in an ip address failed to parse to a number."),
+            }
             add_buffer.clear();
             octet_buffer.clear();
             octet_number = 0;
