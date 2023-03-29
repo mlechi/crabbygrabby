@@ -8,8 +8,9 @@ pub fn parse()-> ScanRequest{
     //Below are the indexes of the args for ports and addresses. They will always be the args preceded by -p and -t.
     let mut arg_index_port:usize = 0;
     let mut arg_index_address:usize = 0;
+    let mut arg_index_address_end:usize = 0;
     //Below is the index of the scan type. Always preceded by -st.
-    let mut arg_index_scan_type:usize = 0;
+    let mut arg_index_scan_type:u8 = 0;
     //Initialize the ScanType
     let mut s_t: ScanType = ScanType::Normal;
     //Find the indexes.
@@ -20,7 +21,15 @@ pub fn parse()-> ScanRequest{
                 //port
                 "-p" => arg_index_port = i+1,
                 //ipv4 target
-                "-t" => arg_index_address = i+1,
+                "-t" => {
+                    arg_index_address = i+1;
+                    arg_index_address_end = arg_index_address + 1;
+                    for i in &args[arg_index_address..] {
+                        if i.ends_with(',') {
+                            arg_index_address_end += 1;
+                        } else {continue;}
+                    }
+                },
                 //Scan type
                 "-st" => {match args[i+1].as_str(){
                     "c" => s_t = ScanType::Normal,
@@ -33,8 +42,7 @@ pub fn parse()-> ScanRequest{
         //Use ports_parse
         let prt:Vec<i32> = ports_parse(&args[arg_index_port]);
         //Use address_parse to get list of addresses to scan.
-        //As of now, address_parse does nothing.
-        let mut addrs:Vec<String> = match address_parse(&args[arg_index_address]) {
+        let mut addrs:Vec<String> = match address_parse(&args[arg_index_address..arg_index_address_end].to_vec()) {
             Ok(x) => x,
             Err(_) => vec!["".to_string()],
         };
@@ -46,62 +54,75 @@ pub fn parse()-> ScanRequest{
 }
 
 //IPv4 addresses only
-fn address_parse(input: &String)->Result<Vec<String>, String>{
+fn address_parse(input: &Vec<String>)->Result<Vec<String>, String>{
     let mut output:Vec<String> = Vec::new();
-    let mut octet_number: u16 = 0;
-    let mut octet_buffer:String = String::new();
-    let mut add_buffer:String = String::new();
-    for i in input.chars() {
-        if i.is_numeric() {octet_buffer.push(i);}
-        else if i == '.' {
-            match &octet_buffer.parse::<u8>() {
-                Ok(x)  => {
-                    if x >= &0 && x <= &255 {
+    println!("{:?}",input);
+    for address in input {
+        let mut octet_number: u16 = 0;
+        let mut octet_buffer:String = String::new();
+        let mut add_buffer:String = String::new();
+        let mut num_p: u8 = 0;
+        for i in address.chars() {
+            if i.is_numeric() {octet_buffer.push(i); println!("i: {} - octet_buffer: {} - add_buffer: {} - octet_numer: {}", i, octet_buffer, add_buffer, octet_number);}
+            else if i == '.' {
+                match &octet_buffer.parse::<u8>() {
+                    Ok(x)  => {
                         octet_buffer.push(i);
                         add_buffer.push_str(octet_buffer.as_str());
-                    } else {println!("An octet in an ip address is outside the acceptable range (between 0 and 255)");}
-                },
-                Err(_)  => {println!("An octet in an ip address failed to parse to a u8."); add_buffer.clear();},
+                        println!("i: {} - octet_buffer: {} - add_buffer: {}", i, octet_buffer, add_buffer);
+                    },
+                    Err(_)  => {
+                        octet_buffer.push(i);
+                        println!("PERIOD An octet in an ip address failed to parse to a u8. add_buffer: {} octet_buffer: {}", add_buffer, octet_buffer);
+                        add_buffer.clear();
+                        num_p = 0;
+                        octet_number = 0;
+                    },
+                }
+                octet_buffer.clear();
+                octet_number += 1;
             }
-            octet_buffer.clear();
-            octet_number += 1;
-        }
-        //When ranges and subnets are supported, this will be uncommented.
-        //else if octet_number == 3 && (i == '-' || i == '/') {octet_buffer.push(i);}
-        else if octet_number == 3 && i == ',' {
-            match &octet_buffer.parse::<u8>() {
-                Ok(x)  => {
-                    if x >= &0 && x <= &255 {
+            //When ranges and subnets are supported, this will be uncommented.
+            //else if octet_number == 3 && (i == '-' || i == '/') {octet_buffer.push(i);}
+            else if octet_number == 3 && i == ',' {
+                match &octet_buffer.parse::<u8>() {
+                    Ok(x)  => {
+                        //println!("Octet_buffer: {} - add_buffer: {}", octet_buffer, add_buffer);
                         add_buffer.push_str(octet_buffer.as_str());
+                        num_p = 0;
+                        println!("{}", num_p);
+                        println!("i: {} - octet_buffer: {} - add_buffer: {} - octet_number: {}", i, octet_buffer, add_buffer, octet_number);
                         output.push(add_buffer.clone());
-                    } else {println!("An octet in an ip address is outside the acceptable range (between 0 and 255)");}
-                },
-                Err(_)  => {println!("An octet in an ip address failed to parse to a u8."); add_buffer.clear();},
+                    },
+                    Err(_)  => {println!("COMMA An octet in an ip address failed to parse to a u8."); add_buffer.clear();},
+                }
+                add_buffer.clear();
+                octet_buffer.clear();
+                octet_number = 0;
             }
-            add_buffer.clear();
-            octet_buffer.clear();
-            octet_number = 0;
+            else if i == ',' {add_buffer.clear(); octet_buffer.clear(); octet_number = 0; num_p = 0;}
+            else if octet_number > 3 {octet_buffer.clear(); add_buffer.clear();}
+            else {add_buffer.clear();}
         }
-        else {add_buffer.clear();}
+        add_buffer.push_str(&octet_buffer.as_str());
+        //let mut num_p: u8 = 0;
+        for i in add_buffer.chars() {
+            if i == '.' { num_p += 1; }
+        }
+        if num_p > 3 && add_buffer != "" {
+            println!("{} is Invalid IP address: Too many periods.", add_buffer);
+            add_buffer.clear();
+        } else if num_p < 3 && add_buffer != "" {
+            println!("{} is Invalid IP address: Not enough periods.", add_buffer);
+            add_buffer.clear();
+        }
+        //println!("Before range parsing: {:?}",output);
+        //let add_split = add_buffer.split("-");
+        //let start = add_split.next().unwrap().parse::<u16>().unwrap();
+        //let end = add_split.next().unwrap().parse::<u16>().unwrap();
+        if add_buffer != "" && octet_number >= 3 {output.push(add_buffer.clone())};
     }
-    add_buffer.push_str(&octet_buffer.as_str());
-    let mut num_p: u8 = 0;
-    for i in add_buffer.chars() {
-        if i == '.' { num_p += 1; }
-    }
-    if num_p > 3 {
-        println!("{} is Invalid IP address: Too many periods.", add_buffer);
-        add_buffer.clear();
-    } else if num_p < 3 {
-        println!("{} is Invalid IP address: Not enough periods.", add_buffer);
-        add_buffer.clear();
-    }
-    //println!("Before range parsing: {:?}",output);
-    //let add_split = add_buffer.split("-");
-    //let start = add_split.next().unwrap().parse::<u16>().unwrap();
-    //let end = add_split.next().unwrap().parse::<u16>().unwrap();
-    output.push(add_buffer.clone());
-    println!("Before range parsing: {:?}",output);
+    println!("output: {:?}",output);
     Ok(output)
 }
 
