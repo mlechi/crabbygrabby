@@ -58,11 +58,10 @@ fn address_parse(input: &String)->Vec<String>{
                         add_buffer.push_str(octet_buffer.as_str());
                     } else {println!("An octet in an ip address is outside the acceptable range (between 0 and 255)");}
                 },
-                Err(_)  => panic!("An octet in an ip address failed to parse to a number."),
+                Err(_)  => panic!("An octet in an ip address failed to parse to a u8."),
             }
             octet_buffer.clear();
             octet_number += 1;
-            //num_periods += 1;
         }
         //When ranges and subnets are supported, this will be uncommented.
         //else if octet_number == 3 && (i == '-' || i == '/') {octet_buffer.push(i);}
@@ -74,7 +73,7 @@ fn address_parse(input: &String)->Vec<String>{
                         output.push(add_buffer.clone());
                     } else {println!("An octet in an ip address is outside the acceptable range (between 0 and 255)");}
                 },
-                Err(_)  => panic!("An octet in an ip address failed to parse to a number."),
+                Err(_)  => panic!("An octet in an ip address failed to parse to a u8."),
             }
             add_buffer.clear();
             octet_buffer.clear();
@@ -83,7 +82,17 @@ fn address_parse(input: &String)->Vec<String>{
         else {panic!("Invalid IP address. (Invalid input)");}
     }
     add_buffer.push_str(&octet_buffer.as_str());
-    println!("{}", octet_number);
+    let mut num_p: u8 = 0;
+    for i in add_buffer.chars() {
+        if i == '.' { num_p += 1; }
+    }
+    if num_p > 3 {
+        println!("{} is Invalid IP address: Too many periods.", add_buffer);
+        panic!("Invalid IP address: Too many periods.");
+    } else if num_p < 3 {
+        println!("{} is Invalid IP address: Not enough periods.", add_buffer);
+        panic!("Invalid IP address: Not enough periods.");
+    }
     //println!("Before range parsing: {:?}",output);
     //let add_split = add_buffer.split("-");
     //let start = add_split.next().unwrap().parse::<u16>().unwrap();
