@@ -34,7 +34,10 @@ pub fn parse()-> ScanRequest{
         let prt:Vec<i32> = ports_parse(&args[arg_index_port]);
         //Use address_parse to get list of addresses to scan.
         //As of now, address_parse does nothing.
-        let mut addrs:Vec<String> = address_parse(&args[arg_index_address]);
+        let mut addrs:Vec<String> = match address_parse(&args[arg_index_address]) {
+            Ok(x) => x,
+            Err(_) => vec!["".to_string()],
+        };
         //Return the ScanRequest.
         ScanRequest { ports: (prt), target_addresses: (addrs), scan_type: (s_t), }
     } else {
@@ -43,7 +46,7 @@ pub fn parse()-> ScanRequest{
 }
 
 //IPv4 addresses only
-fn address_parse(input: &String)->Vec<String>{
+fn address_parse(input: &String)->Result<Vec<String>, String>{
     let mut output:Vec<String> = Vec::new();
     let mut octet_number: u16 = 0;
     let mut octet_buffer:String = String::new();
@@ -58,7 +61,7 @@ fn address_parse(input: &String)->Vec<String>{
                         add_buffer.push_str(octet_buffer.as_str());
                     } else {println!("An octet in an ip address is outside the acceptable range (between 0 and 255)");}
                 },
-                Err(_)  => panic!("An octet in an ip address failed to parse to a u8."),
+                Err(_)  => {println!("An octet in an ip address failed to parse to a u8."); add_buffer.clear();},
             }
             octet_buffer.clear();
             octet_number += 1;
@@ -73,13 +76,13 @@ fn address_parse(input: &String)->Vec<String>{
                         output.push(add_buffer.clone());
                     } else {println!("An octet in an ip address is outside the acceptable range (between 0 and 255)");}
                 },
-                Err(_)  => panic!("An octet in an ip address failed to parse to a u8."),
+                Err(_)  => {println!("An octet in an ip address failed to parse to a u8."); add_buffer.clear();},
             }
             add_buffer.clear();
             octet_buffer.clear();
             octet_number = 0;
         }
-        else {panic!("Invalid IP address. (Invalid input)");}
+        else {add_buffer.clear();}
     }
     add_buffer.push_str(&octet_buffer.as_str());
     let mut num_p: u8 = 0;
@@ -88,10 +91,10 @@ fn address_parse(input: &String)->Vec<String>{
     }
     if num_p > 3 {
         println!("{} is Invalid IP address: Too many periods.", add_buffer);
-        panic!("Invalid IP address: Too many periods.");
+        add_buffer.clear();
     } else if num_p < 3 {
         println!("{} is Invalid IP address: Not enough periods.", add_buffer);
-        panic!("Invalid IP address: Not enough periods.");
+        add_buffer.clear();
     }
     //println!("Before range parsing: {:?}",output);
     //let add_split = add_buffer.split("-");
@@ -99,7 +102,7 @@ fn address_parse(input: &String)->Vec<String>{
     //let end = add_split.next().unwrap().parse::<u16>().unwrap();
     output.push(add_buffer.clone());
     println!("Before range parsing: {:?}",output);
-    output
+    Ok(output)
 }
 
 //There absolutely must be a more efficient way to do this.

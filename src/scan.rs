@@ -6,11 +6,16 @@ use crate::ScanRequest;
 
 pub fn connect_scan(req:ScanRequest){
     for a in req.target_addresses {
-        for p in &req.ports {
-            let target:String = format!("{}:{}", a, p.to_string());
-            match TcpStream::connect(target){
-                Ok(x) => println!("Port Open: ({}:{})",a,p),
-                Err(x) => println!("Port Closed: ({}:{})",a,p),
+        if a == "".to_string() {
+            println!("Not Performing Scan.");
+            return;
+        } else {
+            for p in &req.ports {
+                let target:String = format!("{}:{}", a, p.to_string());
+                match TcpStream::connect(target){
+                    Ok(x) => println!("Port Open: ({}:{})",a,p),
+                    Err(x) => println!("Port Closed: ({}:{})",a,p),
+                }
             }
         }
     }
