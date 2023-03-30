@@ -9,6 +9,9 @@ pub fn parse()-> ScanRequest{
     let mut arg_index_port:usize = 0;
     let mut arg_index_address:usize = 0;
     let mut arg_index_address_end:usize = 0;
+    //These are the port and address vectors
+    let mut prt:Vec<i32> = (1..=65535).collect();
+    let mut addrs:Vec<String> = vec!["127.0.0.1".to_string()];
     //Below is the index of the scan type. Always preceded by -st.
     let mut arg_index_scan_type:u8 = 0;
     //Initialize the ScanType
@@ -19,7 +22,10 @@ pub fn parse()-> ScanRequest{
         for i in 0..args.len(){
             match args[i].as_str(){
                 //port
-                "-p" => arg_index_port = i+1,
+                "-p" => {
+                    //arg_index_port = i+1
+                    prt = ports_parse(&args[i+1]);
+                },
                 //ipv4 target
                 "-t" => {
                     arg_index_address = i+1;
@@ -29,6 +35,10 @@ pub fn parse()-> ScanRequest{
                             arg_index_address_end += 1;
                         } else {continue;}
                     }
+                    addrs = match address_parse(&args[arg_index_address..arg_index_address_end].to_vec()) {
+                        Ok(x) => x,
+                        Err(_) => vec!["".to_string()],
+                    };
                 },
                 //Scan type
                 "-st" => {match args[i+1].as_str(){
@@ -40,14 +50,18 @@ pub fn parse()-> ScanRequest{
             }
         }
         //Use ports_parse
-        let prt:Vec<i32> = ports_parse(&args[arg_index_port]);
+        //prt = ports_parse(&args[arg_index_port]);
         //Use address_parse to get list of addresses to scan.
-        let mut addrs:Vec<String> = match address_parse(&args[arg_index_address..arg_index_address_end].to_vec()) {
+        /*addrs = match address_parse(&args[arg_index_address..arg_index_address_end].to_vec()) {
             Ok(x) => x,
             Err(_) => vec!["".to_string()],
-        };
+        };*/
         //Return the ScanRequest.
+        //println!("{:?}", &prt);
+        //println!("{:?}", addrs);
         ScanRequest { ports: (prt), target_addresses: (addrs), scan_type: (s_t), }
+        //println!("{:?}",ScanRequest { ports: (prt), target_addresses: (addrs), scan_type: (s_t), } );
+        //ScanRequest { ports: (vec![0]), target_addresses: (vec!["".to_string()]), scan_type: (ScanType::NoScan), }
     } else {
         help_message()
     }
@@ -63,13 +77,17 @@ fn address_parse(input: &Vec<String>)->Result<Vec<String>, String>{
         let mut add_buffer:String = String::new();
         let mut num_p: u8 = 0;
         for i in address.chars() {
-            if i.is_numeric() {octet_buffer.push(i); println!("i: {} - octet_buffer: {} - add_buffer: {} - octet_numer: {}", i, octet_buffer, add_buffer, octet_number);}
+            if i.is_numeric() {octet_buffer.push(i);}
             else if i == '.' {
                 match &octet_buffer.parse::<u8>() {
                     Ok(x)  => {
                         octet_buffer.push(i);
+                        if octet_buffer.len() > 2 {
+                            while octet_buffer.starts_with("0") {
+                                octet_buffer = octet_buffer[1..].to_string();
+                            }
+                        }
                         add_buffer.push_str(octet_buffer.as_str());
-                        println!("i: {} - octet_buffer: {} - add_buffer: {}", i, octet_buffer, add_buffer);
                     },
                     Err(_)  => {
                         octet_buffer.push(i);
@@ -79,6 +97,7 @@ fn address_parse(input: &Vec<String>)->Result<Vec<String>, String>{
                         octet_number = 0;
                     },
                 }
+                num_p += 1;
                 octet_buffer.clear();
                 octet_number += 1;
             }
@@ -88,10 +107,13 @@ fn address_parse(input: &Vec<String>)->Result<Vec<String>, String>{
                 match &octet_buffer.parse::<u8>() {
                     Ok(x)  => {
                         //println!("Octet_buffer: {} - add_buffer: {}", octet_buffer, add_buffer);
+                        if octet_buffer.len() < 1 {
+                            while octet_buffer.starts_with("0") {
+                                octet_buffer = octet_buffer[1..].to_string();
+                            }
+                        }
                         add_buffer.push_str(octet_buffer.as_str());
                         num_p = 0;
-                        println!("{}", num_p);
-                        println!("i: {} - octet_buffer: {} - add_buffer: {} - octet_number: {}", i, octet_buffer, add_buffer, octet_number);
                         output.push(add_buffer.clone());
                     },
                     Err(_)  => {println!("COMMA An octet in an ip address failed to parse to a u8."); add_buffer.clear();},
@@ -105,10 +127,6 @@ fn address_parse(input: &Vec<String>)->Result<Vec<String>, String>{
             else {add_buffer.clear();}
         }
         add_buffer.push_str(&octet_buffer.as_str());
-        //let mut num_p: u8 = 0;
-        for i in add_buffer.chars() {
-            if i == '.' { num_p += 1; }
-        }
         if num_p > 3 && add_buffer != "" {
             println!("{} is Invalid IP address: Too many periods.", add_buffer);
             add_buffer.clear();
@@ -202,5 +220,6 @@ fn help_message() -> ScanRequest {
     println!("    This can and should be ommitted, because it does nothing as of now.");
     println!("    Right now, only a normal TCP connect scan is fully functional.");
     println!("    To do a TCP connect scan, type \"c\" after -st flag.");
+    println!("");
     ScanRequest { ports: (vec![0]), target_addresses: (vec!["".to_string()]), scan_type: (ScanType::NoScan) }
 }

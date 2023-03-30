@@ -5,6 +5,7 @@ use std::time::Duration;
 use crate::ScanRequest;
 
 pub fn connect_scan(req:ScanRequest){
+    println!("{:?}",req.target_addresses);
     for a in req.target_addresses {
         println!("Scanning: {}", a);
         if a == "".to_string() {
@@ -15,8 +16,8 @@ pub fn connect_scan(req:ScanRequest){
                 let target:String = format!("{}:{}", a, p.to_string());
                 //match TcpStream::connect_timeout(&target.to_socket_addrs().expect("Not valid socket_addrs").next().expect("KILL ME"), Duration::from_secs(1)){
                 match TcpStream::connect(target){
-                    Ok(x) => println!("Port Open: ({}:{})",a,p),
-                    Err(x) => println!("Port Closed: ({}:{})",a,p),
+                    Ok(x) => println!("    Port Open: ({}:{})",a,p),
+                    Err(x) => println!("    Port Closed: ({}:{})",a,p),
                 }
             }
         }
