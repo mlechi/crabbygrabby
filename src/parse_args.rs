@@ -1,6 +1,6 @@
 #![allow(unused)]
 use crate::{ScanRequest, ScanType};
-use std::env;
+use std::{env, str::FromStr};
 
 pub fn parse()-> ScanRequest{
     //Collect args. In future, consider passing args: Vec<String> in as a parameter.
@@ -70,12 +70,13 @@ pub fn parse()-> ScanRequest{
 //IPv4 addresses only
 fn address_parse(input: &Vec<String>)->Result<Vec<String>, String>{
     let mut output:Vec<String> = Vec::new();
-    println!("{:?}",input);
+    //println!("address_parse input: {:?}",input);
     for address in input {
         let mut octet_number: u16 = 0;
         let mut octet_buffer:String = String::new();
         let mut add_buffer:String = String::new();
         let mut num_p: u8 = 0;
+        let mut oct_range_start: String = String::from_str("").unwrap();
         for i in address.chars() {
             if i.is_numeric() {octet_buffer.push(i);}
             else if i == '.' {
@@ -103,7 +104,25 @@ fn address_parse(input: &Vec<String>)->Result<Vec<String>, String>{
             }
             //When ranges and subnets are supported, this will be uncommented.
             //else if octet_number == 3 && (i == '-' || i == '/') {octet_buffer.push(i);}
+            else if i == '-' {
+                if octet_number != 3 {
+                    //println!("Dashes are only supported in the last octet right now, to denote ranges.");
+                    panic!("Dashes are only supported in the last octet right now, to denote ranges.");
+                } else {
+                    //println!("Range!!!!!!!!!!");
+                    //println!("add_buffer: {}", add_buffer);
+                    //println!("oct_buff: {}", octet_buffer);
+                    //add_buffer.push_str(octet_buffer.as_str());
+                    oct_range_start = octet_buffer.clone();
+                    octet_buffer.clear();
+                    //println!("add_buffer: {}", add_buffer);
+                    //println!("oct_buff: {}", octet_buffer);
+                }
+            }
             else if octet_number == 3 && i == ',' {
+                //println!("COMMA REACHED.");
+                //println!("oct start: {}", oct_range_start);
+                //println!("add: {} - oct: {}", add_buffer, octet_buffer);
                 match &octet_buffer.parse::<u8>() {
                     Ok(x)  => {
                         //println!("Octet_buffer: {} - add_buffer: {}", octet_buffer, add_buffer);
@@ -112,9 +131,18 @@ fn address_parse(input: &Vec<String>)->Result<Vec<String>, String>{
                                 octet_buffer = octet_buffer[1..].to_string();
                             }
                         }
-                        add_buffer.push_str(octet_buffer.as_str());
                         num_p = 0;
-                        output.push(add_buffer.clone());
+                        if oct_range_start == "".to_string() {
+                            add_buffer.push_str(octet_buffer.as_str());
+                            output.push(add_buffer.clone());
+                        } else {
+                            //add_buffer.push_str(octet_buffer.as_str());
+                            for s in oct_range_start.parse::<u8>().unwrap()..=*x {
+                                let add_address:String = format!("{}{}", add_buffer, s.to_string());
+                                output.push(add_address);
+                            }
+                            oct_range_start = "".to_string();
+                        }
                     },
                     Err(_)  => {println!("COMMA An octet in an ip address failed to parse to a u8."); add_buffer.clear();},
                 }
@@ -124,9 +152,10 @@ fn address_parse(input: &Vec<String>)->Result<Vec<String>, String>{
             }
             else if i == ',' {add_buffer.clear(); octet_buffer.clear(); octet_number = 0; num_p = 0;}
             else if octet_number > 3 {octet_buffer.clear(); add_buffer.clear();}
-            else {add_buffer.clear();}
+            else {add_buffer.clear(); octet_buffer.clear();}
         }
-        add_buffer.push_str(&octet_buffer.as_str());
+        //if oct_range_start == "" {add_buffer.push_str(&octet_buffer.as_str());}
+        //add_buffer.push_str(&octet_buffer.as_str());
         if num_p > 3 && add_buffer != "" {
             println!("{} is Invalid IP address: Too many periods.", add_buffer);
             add_buffer.clear();
@@ -138,9 +167,34 @@ fn address_parse(input: &Vec<String>)->Result<Vec<String>, String>{
         //let add_split = add_buffer.split("-");
         //let start = add_split.next().unwrap().parse::<u16>().unwrap();
         //let end = add_split.next().unwrap().parse::<u16>().unwrap();
-        if add_buffer != "" && octet_number >= 3 {output.push(add_buffer.clone())};
+        if add_buffer != "" && octet_number >= 3 {
+            //output.push(add_buffer.clone())
+            match &octet_buffer.parse::<u8>() {
+                Ok(x)  => {
+                    //println!("Octet_buffer: {} - add_buffer: {}", octet_buffer, add_buffer);
+                    if octet_buffer.len() < 1 {
+                        while octet_buffer.starts_with("0") {
+                            octet_buffer = octet_buffer[1..].to_string();
+                        }
+                    }
+                    num_p = 0;
+                    if oct_range_start == "".to_string() {
+                        add_buffer.push_str(octet_buffer.as_str());
+                        output.push(add_buffer.clone());
+                    } else {
+                        //add_buffer.push_str(octet_buffer.as_str());
+                        for s in oct_range_start.parse::<u8>().unwrap()..=*x {
+                            let add_address:String = format!("{}{}", add_buffer, s.to_string());
+                            output.push(add_address);
+                        }
+                    }
+                },
+                Err(_)  => {println!("COMMA An octet in an ip address failed to parse to a u8."); add_buffer.clear();},
+            }
+
+        };
     }
-    println!("output: {:?}",output);
+    println!("address_parse output: {:?}",output);
     Ok(output)
 }
 
@@ -163,7 +217,8 @@ fn ports_parse(list:&String)->Vec<i32>{
         } else if i=='-'{
           //If i is a dash, treat it like a number. This way, ranges are included in port_buffer to be parsed later.
           loop_buffer.push(i);
-        } else if !i.is_numeric(){
+        //} else if !i.is_numeric(){
+        } else {
           println!("Unparseable input detected. Probably gonna panic soon.");
         }
     }
