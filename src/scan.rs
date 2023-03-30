@@ -24,6 +24,7 @@ pub fn connect_scan(req:ScanRequest){
     }
 }
 
+//This does not work as intended, and is not being worked on right now.
 pub fn syn_scan(req:ScanRequest){
     println!("SYN scan called!!!!!");
     let address = &req.target_addresses[0];
