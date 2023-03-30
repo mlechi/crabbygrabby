@@ -24,9 +24,6 @@ pub fn connect_scan(req:ScanRequest){
     }
 }
 
-//THIS WAS mostly WRITTEN BY CHATGPT, NOT ME. I AM NOT TAKING CREDIT FOR THIS. THE ABOVE WAS WRITTEN BY ME, BUT THE BELOW WAS WRITTEN BY CHATGPT.
-//I put it in the loop to scan multiple ports, and I made it work with the scanrequest struct.
-//It doesn't really work as intended, so I'll work on something that does in the future.
 pub fn syn_scan(req:ScanRequest){
     println!("SYN scan called!!!!!");
     let address = &req.target_addresses[0];
