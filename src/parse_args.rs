@@ -173,7 +173,17 @@ fn address_parse(input: &Vec<String>)->Result<Vec<String>, String>{
         };
     }
     //println!("address_parse output: {:?}",output);
-    Ok(output)
+    //Ok(output)
+    match output.is_empty() {
+        true => {
+            println!("Could not parse any IP addresses form input given.");
+            Err("Could not parse any IP addresses form input given.".to_string())
+        },
+        false => {
+            println!("{:?}", output);
+            Ok(output)
+        },
+    }
 }
 
 //There absolutely must be a more efficient way to do this.
@@ -196,10 +206,10 @@ fn ports_parse(string_list:&Vec<String>)->Result<Vec<i32>, String>{
           loop_buffer.clear();
         } else if i=='-'{
           //If i is a dash, treat it like a number. This way, ranges are included in port_buffer to be parsed later.
-          loop_buffer.push(i);
+          if !loop_buffer.is_empty() {loop_buffer.push(i);}
         //} else if !i.is_numeric(){
         } else {
-          println!("Unparseable input detected. Probably gonna panic soon.");
+          println!("Unparseable input detected.");
         }
     }
     port_buffer.push(loop_buffer.iter().collect());
@@ -235,7 +245,10 @@ fn ports_parse(string_list:&Vec<String>)->Result<Vec<i32>, String>{
     }
     output.append(&mut ports);
     }
-    Ok(output)
+    match output.is_empty() {
+        true =>  { println!("No ports could be parsed from input given.") ;Ok(output)},
+        false => { println!("{:?}", output); Err("No ports could be parsed from input given.".to_string())},
+    }
 }
 
 fn help_message() -> ScanRequest {

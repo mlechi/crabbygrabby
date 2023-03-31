@@ -6,9 +6,9 @@ mod scan;
 //use parse_args::parse;
 fn main() {
   //returns a ScanRequest.
-  let scan_req = parse_args::parse();
+  let _scan_req = parse_args::parse();
   //println!("{:?}", scan_req);
-  scan_req.perform_scan();
+  //scan_req.perform_scan();
 }
 #[derive(Debug)]
 #[allow(unused)]
