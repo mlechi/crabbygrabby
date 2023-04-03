@@ -1,7 +1,6 @@
 #![allow(unused)]
 use crate::{ScanRequest, ScanType};
 use std::{env, str::FromStr};
-
 pub fn parse()-> ScanRequest{
     //Collect args. In future, consider passing args: Vec<String> in as a parameter.
     let args:Vec<String> = env::args().collect();
@@ -246,8 +245,8 @@ fn ports_parse(string_list:&Vec<String>)->Result<Vec<i32>, String>{
     output.append(&mut ports);
     }
     match output.is_empty() {
-        true =>  { println!("No ports could be parsed from input given.") ;Ok(output)},
-        false => { println!("{:?}", output); Err("No ports could be parsed from input given.".to_string())},
+        true =>  { Err("No ports could be parsed from input given.". to_string()) },
+        false => { println!("{:?}", output); Ok(output) },
     }
 }
 

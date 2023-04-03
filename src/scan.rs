@@ -16,8 +16,8 @@ pub fn connect_scan(req:ScanRequest){
                 let target:String = format!("{}:{}", a, p.to_string());
                 //match TcpStream::connect_timeout(&target.to_socket_addrs().expect("Not valid socket_addrs").next().expect("KILL ME"), Duration::from_secs(1)){
                 match TcpStream::connect(target){
-                    Ok(x) => println!("    Port Open: ({}:{})",a,p),
-                    Err(x) => println!("    Port Closed: ({}:{})",a,p),
+                    Ok(x) => println!("    {}: Open",p),
+                    Err(x) => println!("    {}: Closed",p),
                 }
             }
         }
