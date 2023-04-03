@@ -1,6 +1,7 @@
-#![allow(unused)]
-use std::io::{Read, Write};
-use std::net::{TcpStream, ToSocketAddrs};
+//#![allow(unused)]
+//use std::io::{Read, Write};
+use std::net::{TcpStream, SocketAddr};
+use std::str::FromStr;
 use std::time::Duration;
 use crate::ScanRequest;
 
@@ -13,11 +14,12 @@ pub fn connect_scan(req:ScanRequest){
             continue;
         } else {
             for p in &req.ports {
-                let target:String = format!("{}:{}", a, p.to_string());
-                //match TcpStream::connect_timeout(&target.to_socket_addrs().expect("Not valid socket_addrs").next().expect("KILL ME"), Duration::from_secs(1)){
-                match TcpStream::connect(target){
-                    Ok(x) => println!("    {}: Open",p),
-                    Err(x) => println!("    {}: Closed",p),
+                //let target:String = format!("{}:{}", a, p.to_string());
+                let target: SocketAddr = SocketAddr::from_str(format!("{}:{}", a, p.to_string()).as_str()).unwrap();
+                //match TcpStream::connect(target){
+                match TcpStream::connect_timeout(&target, Duration::from_secs(1)) {
+                    Ok(_) => println!("    {}: Open",p),
+                    Err(_) => println!("    {}: Closed",p),
                 }
             }
         }
