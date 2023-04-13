@@ -19,7 +19,8 @@ pub fn connect_scan(req:ScanRequest){
                 //match TcpStream::connect(target){
                 match TcpStream::connect_timeout(&target, Duration::from_secs(1)) {
                     Ok(_) => println!("    {}: Open",p),
-                    Err(_) => println!("    {}: Closed",p),
+                    //Err(_) => println!("    {}: Closed",p),
+                    Err(_) => (),
                 }
             }
         }

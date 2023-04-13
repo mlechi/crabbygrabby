@@ -3,6 +3,7 @@
 use std::{env, net::TcpStream};
 mod parse_args;
 mod scan;
+mod ip_parser;
 fn main() {
   //returns a ScanRequest.
   let scan_req = parse_args::parse();
