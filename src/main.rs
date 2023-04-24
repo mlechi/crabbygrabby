@@ -1,22 +1,23 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
-use std::{env, net::TcpStream};
-mod parse_args;
+use std::{env, net::{TcpStream, SocketAddrV4}};
+//mod parse_args;
 mod scan;
 mod ip_parser;
 fn main() {
-  //returns a ScanRequest.
-  let scan_req = parse_args::parse();
-  //println!("{:?}", scan_req);
-  scan_req.perform_scan();
+  let arguments: Vec<String> = env::args().collect();
+  let scan = ScanRequest {targets: ip_parser::parse_socket_range(&arguments).unwrap(), scan_type: ScanType::Normal};
+  //println!("{:?}", scan);
+  scan.perform_scan();
 }
 #[derive(Debug)]
 #[allow(unused)]
 pub struct ScanRequest{
   //With -p flag, just add the specified ports. Without -p flag, add all 65,535 ports.
-  ports: Vec<i32>,
+  //ports: Vec<i32>,
   //With -t flag, the following addresses. Without, default to loopback address.
-  target_addresses: Vec<String>,
+  //target_addresses: Vec<String>,
+  targets: Vec<SocketAddrV4>,
   scan_type: ScanType,
 }
 impl ScanRequest{
