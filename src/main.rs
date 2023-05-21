@@ -4,11 +4,16 @@ use std::{env, net::{TcpStream, SocketAddrV4}};
 //mod parse_args;
 mod scan;
 mod ip_parser;
+
 fn main() {
   let arguments: Vec<String> = env::args().collect();
-  let scan = ScanRequest {targets: ip_parser::parse_socket_range(&arguments).unwrap(), scan_type: ScanType::Normal};
-  //println!("{:?}", scan);
-  scan.perform_scan();
+  if arguments.len() != 1 {
+    let scan = ScanRequest {targets: ip_parser::parse_socket_range(&arguments).unwrap(), scan_type: ScanType::Normal};
+    println!("{:?}", scan);
+    scan.perform_scan();
+  } else {
+    ip_parser::help_message();
+  }
 }
 #[derive(Debug)]
 #[allow(unused)]
@@ -24,7 +29,7 @@ impl ScanRequest{
   fn perform_scan(self){
     match self.scan_type{
       ScanType::Normal => scan::connect_scan(self),
-      ScanType::Syn => (),//scan::syn_scan(self),
+      ScanType::Syn => (), //scan::syn_scan(self),
       ScanType::NoScan => (),
     }
   }

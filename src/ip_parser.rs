@@ -123,3 +123,25 @@ fn ip_parse(input: &Vec<String>) -> Result<Vec<Ipv4Addr>, String> {
     }
     Ok(output_vec)
 }
+
+pub fn help_message() {
+    println!("");
+    println!("A simple port scanner for the purpose of study and practice.");
+    println!("");
+    println!("");
+    println!("Input works as follows:");
+    println!("");
+    println!("Ip address is entered after the -t flag.");
+    println!("    Only IPv4 addreses work right now.");
+    println!("    You can enter one address, or multiple seperated by commas with no spaces.");
+    println!("    Ranges, subnets, and multiple addresses seperated by commas with spaces will come later.");
+    println!("");
+    println!("Ports are entered after the -p flag.");
+    println!("    Ports can be entered singularly, with commas, or as ranges. No spaces.");
+    println!("");
+    println!("Scan type is entered after -st flag.");
+    println!("    This can and should be ommitted, because it does nothing as of now.");
+    println!("    Right now, only a normal TCP connect scan is fully functional.");
+    println!("    To do a TCP connect scan, type \"c\" after -st flag.");
+    println!("");
+}
